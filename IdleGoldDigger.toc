@@ -1,0 +1,6 @@
+## Interface: 50504
+## Title: Idle Gold Digger
+## Notes: A tiny idle game
+## SavedVariables: IdleDB
+
+IdleGoldDigger.lua
