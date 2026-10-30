@@ -1,7 +1,34 @@
+
 ## Interface: 50504, 16001
 ## Title: Idle Gold Digger
 ## Notes: A tiny idle game
 ## IconTexture: Interface\Icons\INV_Misc_Coin_01
 ## SavedVariables: IdleDB
 
-IdleGoldDigger.lua
+# Core
+Core\Namespace.lua
+
+# Economy
+Economy\Config.lua
+Economy\Mining.lua
+Economy\Diamonds.lua
+Economy\Offline.lua
+Economy\Purchases.lua
+
+# Utilities
+Utils\Formatting.lua
+
+# UI
+UI\Helpers.lua
+UI\MainWindow.lua
+UI\MiniWindow.lua
+UI\Refresh.lua
+UI\Options.lua
+
+# Core services
+Core\Database.lua
+Core\Events.lua
+Core\Commands.lua
+
+# Bootstrap
+Core\Bootstrap.lua
