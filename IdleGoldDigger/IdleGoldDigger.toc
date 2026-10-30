@@ -1,6 +1,7 @@
-## Interface: 50504
+## Interface: 50504, 16001
 ## Title: Idle Gold Digger
 ## Notes: A tiny idle game
+## IconTexture: Interface\Icons\INV_Misc_Coin_01
 ## SavedVariables: IdleDB
 
 IdleGoldDigger.lua
