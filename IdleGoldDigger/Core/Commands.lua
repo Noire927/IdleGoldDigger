@@ -4,6 +4,17 @@ addon.Commands = {}
 
 local Commands = addon.Commands
 
+-- Display available commands
+function Commands:PrintHelp()
+	print("|cff00ccffIdle Gold Digger - Commands|r")
+	print("|cffffd700/gameidle|r - Show or hide the game window")
+	print("|cffffd700/gameidle play|r - Open the main window")
+	print("|cffffd700/gameidle options|r - Open addon settings")
+	print("|cffffd700/gameidle font <8-24>|r - Change text size")
+	print("|cffffd700/gameidle reset|r - Reset current mining progress")
+	print("|cffffd700/gameidle help|r - Display this command list")
+end
+
 -- Reset the current mining progress
 function Commands:ResetProgress()
 	IdleDB.gold = 100
@@ -33,21 +44,34 @@ function Commands:Handle(message)
 
 			if miniWindow then
 				miniWindow:SetShown(not miniWindow:IsShown())
+
+				if miniWindow:IsShown() then
+					IdleDB.windowState = "minimized"
+				else
+					IdleDB.windowState = "hidden"
+				end
 			end
 		else
 			local window = addon.UI.window
 
 			if window then
 				window:SetShown(not window:IsShown())
+
+				if window:IsShown() then
+					IdleDB.windowState = "open"
+				else
+					IdleDB.windowState = "hidden"
+				end
 			end
 		end
 
 	-- Open the main window
-	elseif command == "open" then
+	elseif command == "play" then
 		if addon.UI.isMinimized then
 			addon.UI.MiniWindow:Restore()
 		elseif addon.UI.window then
 			addon.UI.window:Show()
+			IdleDB.windowState = "open"
 		end
 
 	-- Open the options panel
@@ -64,6 +88,10 @@ function Commands:Handle(message)
 			print("|cff00ccffIdle Gold Digger:|r " .. "Usage: /gameidle font <8-24>")
 		end
 
+	-- Display available commands
+	elseif command == "cmd" or command == "help" then
+		self:PrintHelp()
+
 	-- Reset mining progress
 	elseif command == "reset" then
 		self:ResetProgress()
@@ -75,11 +103,7 @@ function Commands:Handle(message)
 
 	-- Unknown command
 	else
-		print(
-			"|cff00ccffIdle Gold Digger:|r "
-				.. "Unknown command. Available commands: "
-				.. "open, options, font, reset, testdiamond"
-		)
+		print("|cff00ccffIdle Gold Digger:|r " .. "Unknown command. Type /gameidle help for help.")
 	end
 end
 

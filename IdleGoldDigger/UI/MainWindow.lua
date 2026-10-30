@@ -15,7 +15,6 @@ local BUTTON_GAP = 12
 local MAX_W, MAX_H = 500, 400
 local MIN_W, MIN_H = 200, 180
 
-local PICKAXE_TINT = { 1, 0.85, 0.35 }
 
 local ICONS = {
 	miner = "Interface\\Icons\\Trade_Mining",
@@ -79,6 +78,13 @@ function MainWindow:Build()
 	local window = CreateFrame("Frame", "IdleGoldDiggerFrame", UIParent, "BasicFrameTemplateWithInset")
 
 	UI.window = window
+
+		-- Save when the main window is closed
+	window:HookScript("OnHide", function()
+		if not UI.isMinimized then
+			IdleDB.windowState = "hidden"
+		end
+	end)
 
 	window:SetSize(IdleDB.width or 240, IdleDB.height or 240)
 	window:SetPoint("CENTER")

@@ -51,8 +51,19 @@ function addon.Database:Validate()
 	-- Automated Mining Crew
 	IdleDB.offlineUpgradeLevel = math.floor(GetNumber("offlineUpgradeLevel", 0, 0, Config.MAX_CREW_LEVEL))
 
-	-- UI settings
+		-- UI settings
 	IdleDB.fontSize = math.floor(GetNumber("fontSize", DEFAULT_FONT, MIN_FONT, MAX_FONT))
+
+	-- Window state
+	local validWindowStates = {
+		open = true,
+		minimized = true,
+		hidden = true,
+	}
+
+	if not validWindowStates[IdleDB.windowState] then
+		IdleDB.windowState = "open"
+	end
 
 	IdleDB.width = GetNumber("width", 240, MIN_W, MAX_W)
 	IdleDB.height = GetNumber("height", 240, MIN_H, MAX_H)

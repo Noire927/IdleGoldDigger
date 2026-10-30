@@ -4,6 +4,18 @@ addon.Events = {}
 
 local Events = addon.Events
 
+-- Restore the window state saved from the previous session
+function Events:RestoreWindowState()
+	local state = IdleDB.windowState
+
+	if state == "minimized" then
+		addon.UI.MiniWindow:Minimize()
+	elseif state == "hidden" then
+		addon.UI.window:Hide()
+		addon.UI.miniWindow:Hide()
+	end
+end
+
 -- Start the passive income ticker
 function Events:StartTicker()
 	if self.ticker then
@@ -22,11 +34,11 @@ function Events:StartTicker()
 
 			local income = addon.Mining:GetTotalRate()
 
-addon.Diamonds:AwardGold(income)
+			addon.Diamonds:AwardGold(income)
 
-IdleDB.lastSeen = time()
+			IdleDB.lastSeen = time()
 
-addon.UI:Refresh()
+			addon.UI:Refresh()
 		end
 	end)
 end
@@ -54,6 +66,9 @@ function Events:OnAddonLoaded(loadedAddon)
 
 	-- Update all displays
 	addon.UI:Refresh()
+
+	-- Restore the previous window state
+	self:RestoreWindowState()
 
 	-- Start passive income
 	self:StartTicker()

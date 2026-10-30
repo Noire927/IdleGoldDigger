@@ -10,26 +10,25 @@ local MINI_HEIGHT = 32
 
 -- Resize the minimized bar to fit its currency text
 function MiniWindow:Fit()
-    local miniWindow = UI.miniWindow
-    local miniGoldText = UI.miniGoldText
+	local miniWindow = UI.miniWindow
+	local miniGoldText = UI.miniGoldText
 
-    if not miniWindow or not miniGoldText then
-        return
-    end
+	if not miniWindow or not miniGoldText then
+		return
+	end
 
-    local textWidth = miniGoldText:GetStringWidth()
-    local screenWidth = UIParent:GetWidth()
+	local textWidth = miniGoldText:GetStringWidth()
+	local screenWidth = UIParent:GetWidth()
 
-    local needW = math.ceil(textWidth + 48)
-    local needH = math.max(MINI_HEIGHT, IdleDB.fontSize + 16)
+	local needW = math.ceil(textWidth + 48)
+	local needH = math.max(MINI_HEIGHT, IdleDB.fontSize + 16)
 
-    needW = math.min(needW, screenWidth)
+	needW = math.min(needW, screenWidth)
 
-    miniWindow:SetSize(needW, needH)
+	miniWindow:SetSize(needW, needH)
 
-    miniGoldText:SetWidth(math.max(1, needW - 48))
+	miniGoldText:SetWidth(math.max(1, needW - 48))
 end
-
 
 -- Hide the main window and show the minimized bar
 function MiniWindow:Minimize()
@@ -45,7 +44,9 @@ function MiniWindow:Minimize()
 	IdleDB.height = window:GetHeight()
 
 	UI.isMinimized = true
+	IdleDB.windowState = "minimized"
 
+	UI.minimizeBtn:SetText("+")
 	UI.goldText:Hide()
 	UI.minerText:Hide()
 	UI.transmuteText:Hide()
@@ -80,6 +81,7 @@ function MiniWindow:Restore()
 	end
 
 	UI.isMinimized = false
+	IdleDB.windowState = "open"
 
 	miniWindow:Hide()
 	window:Show()
