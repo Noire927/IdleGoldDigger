@@ -1,6 +1,7 @@
-Idle Gold Digger is just a small idle game addon for World of Warcraft that lets you build up your gold production while playing World of Warcraft.
+Idle Gold Digger is just a small idle game addon for World of Warcraft.
 
-Getting Started
+Getting Started:
+
 Download or clone this repository.
 Place the IdleGoldDigger folder inside your World of Warcraft AddOns directory
   - Interface
