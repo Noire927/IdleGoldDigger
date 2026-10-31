@@ -6,9 +6,9 @@ addon.Mining = {}
 
 local Mining = addon.Mining
 
--- Miner cost
-function Mining:GetMinerCost()
-	return math.floor(Config.MINER_BASE_COST * Config.MINER_COST_MULTIPLIER ^ IdleDB.miners)
+-- Manual mining reward
+function Mining:GetManualMiningGold()
+	return Config.MINER_BASE_GOLD * Config.PICKAXE_BONUS ^ IdleDB.pickaxeLevel
 end
 
 -- Pickaxe upgrade cost
@@ -21,22 +21,27 @@ function Mining:GetDrillCost()
 	return math.floor(Config.DRILL_BASE_COST * Config.DRILL_COST_MULTIPLIER ^ IdleDB.transmuters)
 end
 
+-- Drill upgrade cost
+function Mining:GetDrillUpgradeCost()
+	local level = IdleDB.drillUpgradeLevel or 0
+
+	return math.floor(Config.DRILL_UPGRADE_BASE_COST * Config.DRILL_UPGRADE_COST_MULTIPLIER ^ level)
+end
+
 -- Automated Mining Crew upgrade cost
 function Mining:GetCrewCost()
 	return math.floor(Config.CREW_BASE_COST * Config.CREW_COST_MULTIPLIER ^ IdleDB.offlineUpgradeLevel)
 end
 
--- Miner production rate
-function Mining:GetMinerRate()
-	return IdleDB.miners * Config.MINER_RATE * Config.PICKAXE_BONUS ^ IdleDB.pickaxeLevel
-end
-
--- Drill production rate
+-- Total drill production rate
 function Mining:GetDrillRate()
-	return IdleDB.transmuters * Config.DRILL_RATE
+	local upgradeLevel = IdleDB.drillUpgradeLevel or 0
+	local productionMultiplier = Config.DRILL_PRODUCTION_MULTIPLIER ^ upgradeLevel
+
+	return IdleDB.transmuters * Config.DRILL_RATE * productionMultiplier
 end
 
--- Combined production rate
+-- Combined passive production rate
 function Mining:GetTotalRate()
-	return self:GetMinerRate() + self:GetDrillRate()
+	return self:GetDrillRate()
 end

@@ -56,6 +56,13 @@ function Events:OnAddonLoaded(loadedAddon)
 	local now = time()
 	local earnings, cappedAway = addon.Offline:ApplyProgress(now)
 
+	-- Notify the player about offline earnings
+	if IdleDB.notifyOffline and earnings > 0 then
+		print(
+			"|cff00ff00Idle Gold Digger:|r You earned " .. addon.Formatting:FormatGold(earnings) .. " gold while away!"
+		)
+	end
+
 	-- Build the main and minimized windows
 	addon.UI.MainWindow:Build()
 	addon.UI.MiniWindow:Build()

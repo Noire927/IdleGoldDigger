@@ -15,13 +15,55 @@ local BUTTON_GAP = 12
 local MAX_W, MAX_H = 500, 400
 local MIN_W, MIN_H = 200, 180
 
-
 local ICONS = {
 	miner = "Interface\\Icons\\Trade_Mining",
 	upgrade = "Interface\\Icons\\Trade_Mining",
 	drill = "Interface\\Icons\\Trade_Engineering",
+	drillUpgrade = "Interface\\Icons\\Trade_Engineering",
 	crew = "Interface\\Icons\\INV_Misc_Gear_01",
 }
+
+-- Save the main window position
+function MainWindow:SavePosition()
+	local window = UI.window
+
+	if not window then
+		return
+	end
+
+	local point, _, _, x, y = window:GetPoint(1)
+
+	if point then
+		IdleDB.point = point
+		IdleDB.x = x or 0
+		IdleDB.y = y or 0
+	end
+end
+
+-- Reset the main window position
+function MainWindow:ResetPosition()
+	local window = UI.window
+
+	if not window then
+		return
+	end
+
+	window:ClearAllPoints()
+	window:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+
+	self:SavePosition()
+end
+
+-- Lock or unlock window movement
+function MainWindow:SetPositionLocked(locked)
+	locked = not not locked
+
+	IdleDB.lockWindowPosition = locked
+
+	if UI.window then
+		UI.window:SetMovable(not locked)
+	end
+end
 
 -- Resize the main window to fit its contents
 function MainWindow:Fit(snap)
@@ -35,18 +77,16 @@ function MainWindow:Fit(snap)
 		UI.goldText:GetStringWidth(),
 		UI.diamondText:GetStringWidth(),
 		UI.minerText:GetStringWidth(),
-		UI.transmuteText:GetStringWidth(),
-		UI.upgradeText:GetStringWidth()
+		UI.transmuteText:GetStringWidth()
 	)
 
-	local buttonWidth = ICON_SIZE * 4 + BUTTON_GAP * 3
+	local buttonWidth = ICON_SIZE * 5 + BUTTON_GAP * 4
 	local needW = math.ceil(math.max(textWidth, buttonWidth) + 40)
 
 	local textHeight = UI.goldText:GetStringHeight()
 		+ UI.diamondText:GetStringHeight()
 		+ UI.minerText:GetStringHeight()
 		+ UI.transmuteText:GetStringHeight()
-		+ UI.upgradeText:GetStringHeight()
 		+ 30
 
 	local buttonHeight = ICON_SIZE + 24
@@ -79,24 +119,33 @@ function MainWindow:Build()
 
 	UI.window = window
 
-		-- Save when the main window is closed
+	-- Save when the main window is closed
 	window:HookScript("OnHide", function()
 		if not UI.isMinimized then
 			IdleDB.windowState = "hidden"
 		end
 	end)
 
+	-- Restore saved size and position
 	window:SetSize(IdleDB.width or 240, IdleDB.height or 240)
-	window:SetPoint("CENTER")
-	window:SetMovable(true)
+
+	window:SetPoint(IdleDB.point or "CENTER", UIParent, IdleDB.point or "CENTER", IdleDB.x or 0, IdleDB.y or 0)
+
+	window:SetMovable(not IdleDB.lockWindowPosition)
 	window:SetResizable(true)
 	window:EnableMouse(true)
 	window:RegisterForDrag("LeftButton")
 
-	window:SetScript("OnDragStart", window.StartMoving)
+	-- Window movement
+	window:SetScript("OnDragStart", function(self)
+		if not IdleDB.lockWindowPosition then
+			self:StartMoving()
+		end
+	end)
 
 	window:SetScript("OnDragStop", function(self)
 		self:StopMovingOrSizing()
+		MainWindow:SavePosition()
 	end)
 
 	-- Resize grip
@@ -108,9 +157,7 @@ function MainWindow:Build()
 	grip:SetPoint("BOTTOMRIGHT", -4, 4)
 
 	grip:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
-
 	grip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
-
 	grip:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
 
 	grip:SetScript("OnMouseDown", function()
@@ -215,38 +262,99 @@ function MainWindow:Build()
 
 	UI.transmuteText:SetPoint("TOP", UI.minerText, "BOTTOM", 0, -6)
 
-	-- Pickaxe upgrade display
-	UI.upgradeText = window:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	-- Manual mining button
+	UI.buyBtn = Helpers:MakeIconButton(window, ICONS.miner, "Mine Gold", function()
+		local reward = addon.Mining:GetManualMiningGold()
+		local multiplier = Config.PICKAXE_BONUS ^ IdleDB.pickaxeLevel
 
-	UI.upgradeText:SetPoint("TOP", UI.transmuteText, "BOTTOM", 0, -6)
+		GameTooltip:AddLine("Click to manually mine gold.", 1, 1, 1, true)
 
-	-- Miner purchase button
-	UI.buyBtn = Helpers:MakeIconButton(window, ICONS.miner, "Buy Miner")
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine("Gold per click: +" .. string.format("%.2f", reward), 0, 1, 0)
 
-	UI.buyBtn:SetPoint("BOTTOM", window, "BOTTOM", -(ICON_SIZE * 1.5 + BUTTON_GAP * 1.5), 12)
-
-	UI.buyBtn:SetScript("OnClick", function()
-		addon.Purchases:BuyMiner()
-		UI:Refresh()
+		GameTooltip:AddLine("Pickaxe multiplier: x" .. string.format("%.2f", multiplier), 1, 0.82, 0)
 	end)
 
-	-- Pickaxe upgrade button
-	UI.pickaxeBtn = Helpers:MakeIconButton(window, ICONS.upgrade, "Upgrade Pickaxe")
+	UI.buyBtn:SetPoint("BOTTOM", window, "BOTTOM", -(ICON_SIZE * 2 + BUTTON_GAP * 2), 12)
 
-	UI.pickaxeBtn:SetPoint("BOTTOM", window, "BOTTOM", -(ICON_SIZE + BUTTON_GAP) / 2, 12)
-
-	UI.pickaxeBtn:SetScript("OnClick", function()
-		addon.Purchases:BuyPickaxe()
+	UI.buyBtn:SetScript("OnClick", function()
+		addon.Purchases:MineGold()
 		UI:Refresh()
 	end)
 
 	-- Drill purchase button
-	UI.transmuteBtn = Helpers:MakeIconButton(window, ICONS.drill, "Buy Drill")
+	UI.transmuteBtn = Helpers:MakeIconButton(window, ICONS.drill, "Buy Drill", function()
+		local drillCount = IdleDB.transmuters
+		local drillRate = addon.Mining:GetDrillRate()
+		local drillCost = addon.Mining:GetDrillCost()
 
-	UI.transmuteBtn:SetPoint("BOTTOM", window, "BOTTOM", (ICON_SIZE + BUTTON_GAP) / 2, 12)
+		GameTooltip:AddLine("Purchase a drill to generate passive gold.", 1, 1, 1, true)
+
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine("Owned drills: " .. drillCount, 1, 1, 1)
+
+		GameTooltip:AddLine("Total production: +" .. string.format("%.2f", drillRate) .. " gold/s", 0, 1, 0)
+
+		GameTooltip:AddLine("Next drill cost: " .. addon.Formatting:FormatWholeGold(drillCost), 1, 0.82, 0)
+	end)
+
+	UI.transmuteBtn:SetPoint("BOTTOM", window, "BOTTOM", -(ICON_SIZE + BUTTON_GAP), 12)
 
 	UI.transmuteBtn:SetScript("OnClick", function()
 		addon.Purchases:BuyDrill()
+		UI:Refresh()
+	end)
+
+	-- Drill production upgrade button
+	UI.drillUpgradeBtn = Helpers:MakeIconButton(window, ICONS.drillUpgrade, "Upgrade Drills", function()
+		local level = IdleDB.drillUpgradeLevel or 0
+		local currentMultiplier = Config.DRILL_PRODUCTION_MULTIPLIER ^ level
+		local nextMultiplier = Config.DRILL_PRODUCTION_MULTIPLIER ^ (level + 1)
+		local cost = addon.Mining:GetDrillUpgradeCost()
+
+		GameTooltip:AddLine("Upgrade all drills to increase their gold production.", 1, 1, 1, true)
+
+		GameTooltip:AddLine(" ")
+
+		GameTooltip:AddLine("Upgrade level: " .. level, 1, 1, 1)
+
+		GameTooltip:AddLine("Current multiplier: x" .. string.format("%.2f", currentMultiplier), 0, 1, 0)
+
+		GameTooltip:AddLine("Next multiplier: x" .. string.format("%.2f", nextMultiplier), 0, 1, 0)
+
+		GameTooltip:AddLine("Upgrade cost: " .. addon.Formatting:FormatWholeGold(cost), 1, 0.82, 0)
+	end)
+
+	UI.drillUpgradeBtn:SetPoint("BOTTOM", window, "BOTTOM", ICON_SIZE + BUTTON_GAP, 12)
+
+	UI.drillUpgradeBtn:SetScript("OnClick", function()
+		addon.Purchases:BuyDrillUpgrade()
+		UI:Refresh()
+	end)
+
+	-- Pickaxe upgrade button
+	UI.pickaxeBtn = Helpers:MakeIconButton(window, ICONS.upgrade, "Upgrade Pickaxe", function()
+		local level = IdleDB.pickaxeLevel
+		local multiplier = Config.PICKAXE_BONUS ^ level
+		local nextMultiplier = Config.PICKAXE_BONUS ^ (level + 1)
+		local cost = addon.Mining:GetPickaxeCost()
+
+		GameTooltip:AddLine("Upgrade your pickaxe to earn more gold per click.", 1, 1, 1, true)
+
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine("Current level: " .. level, 1, 1, 1)
+
+		GameTooltip:AddLine("Current multiplier: x" .. string.format("%.2f", multiplier), 0, 1, 0)
+
+		GameTooltip:AddLine("Next multiplier: x" .. string.format("%.2f", nextMultiplier), 0, 1, 0)
+
+		GameTooltip:AddLine("Upgrade cost: " .. addon.Formatting:FormatWholeGold(cost), 1, 0.82, 0)
+	end)
+
+	UI.pickaxeBtn:SetPoint("BOTTOM", window, "BOTTOM", 0, 12)
+
+	UI.pickaxeBtn:SetScript("OnClick", function()
+		addon.Purchases:BuyPickaxe()
 		UI:Refresh()
 	end)
 
@@ -254,17 +362,36 @@ function MainWindow:Build()
 	UI.crewBtn = Helpers:MakeIconButton(window, ICONS.crew, "Automated Mining Crew", function()
 		local level = addon.Offline:GetCrewLevel()
 		local hours = addon.Offline:GetTimeLimit() / 3600
+		local maxLevel = Config.MAX_CREW_LEVEL
+		local maxed = addon.Offline:IsCrewMaxed()
 
-		GameTooltip:AddLine("Your crew mines gold while you're away.", 1, 1, 1, true)
+		GameTooltip:AddLine("Allows you to earn gold while you're away.", 1, 1, 1, true)
 
-		GameTooltip:AddLine("Offline progress: " .. hours .. " / " .. Config.MAX_CREW_LEVEL .. " hours", 0.2, 1, 0.2)
+		GameTooltip:AddLine("Offline earnings are based on your gold per second.", 1, 1, 1, true)
 
-		GameTooltip:AddLine("Each upgrade adds 1 hour.", 0.8, 0.8, 0.8)
+		GameTooltip:AddLine("Each upgrade increases your offline time limit by 1 hour.", 0.8, 0.8, 0.8, true)
 
-		GameTooltip:AddLine("Upgrade level: " .. level .. "/" .. Config.MAX_CREW_LEVEL, 0.8, 0.8, 0.8)
+		GameTooltip:AddLine(" ")
+
+		GameTooltip:AddLine("Upgrade level: " .. level .. "/" .. maxLevel, 1, 1, 1)
+
+		GameTooltip:AddLine("Offline limit: " .. hours .. " hours", 0, 1, 0)
+
+		if maxed then
+			GameTooltip:AddLine("Maximum level reached!", 0, 1, 0)
+		else
+			local nextCost = addon.Mining:GetCrewCost()
+			local nextHours = hours + 1
+
+			GameTooltip:AddLine(" ")
+
+			GameTooltip:AddLine("Next offline limit: " .. nextHours .. " hours", 0, 1, 0)
+
+			GameTooltip:AddLine("Upgrade cost: " .. addon.Formatting:FormatWholeGold(nextCost), 1, 0.82, 0)
+		end
 	end)
 
-	UI.crewBtn:SetPoint("BOTTOM", window, "BOTTOM", ICON_SIZE * 1.5 + BUTTON_GAP * 1.5, 12)
+	UI.crewBtn:SetPoint("BOTTOM", window, "BOTTOM", ICON_SIZE * 2 + BUTTON_GAP * 2, 12)
 
 	UI.crewBtn:SetScript("OnClick", function()
 		addon.Purchases:BuyCrew()

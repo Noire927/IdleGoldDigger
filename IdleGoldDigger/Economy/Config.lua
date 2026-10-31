@@ -9,12 +9,10 @@ Config.COPPER_PER_SILVER = 100
 Config.SILVER_PER_GOLD = 100
 Config.COPPER_PER_GOLD = Config.COPPER_PER_SILVER * Config.SILVER_PER_GOLD
 
--- Miner settings
-Config.MINER_BASE_COST = 10
-Config.MINER_COST_MULTIPLIER = 1.15
-Config.MINER_RATE = 0.5
+-- Manual mining settings
+Config.MINER_BASE_GOLD = 1
 
--- Pickaxe settings
+-- Pickaxe upgrade settings
 Config.PICKAXE_BASE_COST = 50
 Config.PICKAXE_COST_MULTIPLIER = 1.65
 Config.PICKAXE_BONUS = 1.35
@@ -23,6 +21,11 @@ Config.PICKAXE_BONUS = 1.35
 Config.DRILL_BASE_COST = 100
 Config.DRILL_COST_MULTIPLIER = 1.55
 Config.DRILL_RATE = 2
+
+-- Drill upgrade settings
+Config.DRILL_UPGRADE_BASE_COST = 250
+Config.DRILL_UPGRADE_COST_MULTIPLIER = 2
+Config.DRILL_PRODUCTION_MULTIPLIER = 1.5
 
 -- Automated Mining Crew settings
 Config.CREW_BASE_COST = 10000

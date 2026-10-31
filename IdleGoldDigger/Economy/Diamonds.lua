@@ -18,7 +18,9 @@ function Diamonds:CheckMilestones()
 		IdleDB.runDiamonds = IdleDB.runDiamonds + 1
 		IdleDB.diamonds = IdleDB.diamonds + 1
 
-		print("|cff00ccffIdle Gold Digger:|r " .. "You earned a diamond! Total diamonds: " .. IdleDB.diamonds)
+		if IdleDB.notifyDiamonds then
+			print("|cff00ccffIdle Gold Digger:|r You earned a diamond! Total diamonds: " .. IdleDB.diamonds)
+		end
 	end
 end
 

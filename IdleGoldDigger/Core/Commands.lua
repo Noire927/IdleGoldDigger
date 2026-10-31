@@ -15,19 +15,23 @@ function Commands:PrintHelp()
 	print("|cffffd700/gameidle help|r - Display this command list")
 end
 
--- Reset the current mining progress
+-- Reset all game progress
 function Commands:ResetProgress()
 	IdleDB.gold = 100
-	IdleDB.miners = 0
+	IdleDB.lifetimeGold = 0
+	IdleDB.diamonds = 0
+	IdleDB.runDiamonds = 0
+
 	IdleDB.pickaxeLevel = 0
 	IdleDB.transmuters = 0
-	IdleDB.lastSeen = time()
 	IdleDB.offlineUpgradeLevel = 0
+
+	IdleDB.lastSeen = time()
 
 	-- Refresh the interface after resetting
 	addon.UI:Refresh()
 
-	print("|cff00ccffIdle Gold Digger:|r Progress has been reset.")
+	print("|cff00ccffIdle Gold Digger:|r All progress has been reset.")
 end
 
 -- Handle slash command input

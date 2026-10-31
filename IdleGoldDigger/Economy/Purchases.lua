@@ -20,17 +20,13 @@ function Purchases:SpendGold(cost)
 	return true
 end
 
--- Purchase a miner
-function Purchases:BuyMiner()
-	local cost = addon.Mining:GetMinerCost()
+-- Manually mine gold
+function Purchases:MineGold()
+	local amount = addon.Mining:GetManualMiningGold()
 
-	if not self:SpendGold(cost) then
-		return false, cost
-	end
+	addon.Diamonds:AwardGold(amount)
 
-	IdleDB.miners = IdleDB.miners + 1
-
-	return true, cost
+	return amount
 end
 
 -- Upgrade the pickaxe
@@ -55,6 +51,19 @@ function Purchases:BuyDrill()
 	end
 
 	IdleDB.transmuters = IdleDB.transmuters + 1
+
+	return true, cost
+end
+
+-- Upgrade drill production
+function Purchases:BuyDrillUpgrade()
+	local cost = addon.Mining:GetDrillUpgradeCost()
+
+	if not self:SpendGold(cost) then
+		return false, cost
+	end
+
+	IdleDB.drillUpgradeLevel = IdleDB.drillUpgradeLevel + 1
 
 	return true, cost
 end

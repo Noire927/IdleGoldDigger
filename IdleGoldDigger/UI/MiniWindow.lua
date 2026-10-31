@@ -26,7 +26,6 @@ function MiniWindow:Fit()
 	needW = math.min(needW, screenWidth)
 
 	miniWindow:SetSize(needW, needH)
-
 	miniGoldText:SetWidth(math.max(1, needW - 48))
 end
 
@@ -47,27 +46,31 @@ function MiniWindow:Minimize()
 	IdleDB.windowState = "minimized"
 
 	UI.minimizeBtn:SetText("+")
+
+	-- Hide the main window's text displays
 	UI.goldText:Hide()
+	UI.diamondText:Hide()
 	UI.minerText:Hide()
 	UI.transmuteText:Hide()
-	UI.upgradeText:Hide()
 
+	-- Hide all purchase buttons
 	UI.crewBtn:Hide()
 	UI.buyBtn:Hide()
 	UI.pickaxeBtn:Hide()
 	UI.transmuteBtn:Hide()
+	UI.drillUpgradeBtn:Hide()
 
-	UI.diamondText:Hide()
+	-- Hide the resize grip
 	window.resizeGrip:Hide()
 
+	-- Update and show the minimized gold display
 	UI.miniGoldText:SetText(addon.Formatting:FormatWholeGold(IdleDB.gold))
-
 	UI.miniGoldText:Show()
 
 	miniWindow:Show()
-
 	self:Fit()
 
+	-- Hide the main window completely
 	window:Hide()
 end
 
@@ -83,22 +86,27 @@ function MiniWindow:Restore()
 	UI.isMinimized = false
 	IdleDB.windowState = "open"
 
+	-- Hide the minimized bar and restore the main window
 	miniWindow:Hide()
 	window:Show()
 
+	-- Restore the main window's text displays
 	UI.goldText:Show()
+	UI.diamondText:Show()
 	UI.minerText:Show()
 	UI.transmuteText:Show()
-	UI.upgradeText:Show()
 
+	-- Restore all purchase buttons
 	UI.crewBtn:Show()
 	UI.buyBtn:Show()
 	UI.pickaxeBtn:Show()
 	UI.transmuteBtn:Show()
+	UI.drillUpgradeBtn:Show()
 
-	UI.diamondText:Show()
+	-- Restore the resize grip
 	window.resizeGrip:Show()
 
+	-- Restore the saved dimensions
 	window:SetSize(IdleDB.width or 240, IdleDB.height or 240)
 
 	UI.minimizeBtn:SetText("-")
@@ -122,15 +130,12 @@ function MiniWindow:Build()
 	end
 
 	local miniWindow = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-
 	UI.miniWindow = miniWindow
-
 	miniWindow:SetSize(240, MINI_HEIGHT)
 
 	-- Restore saved position, or use the center of the screen
 	if IdleDB.miniX ~= nil and IdleDB.miniY ~= nil then
 		local x = math.max(0, math.min(IdleDB.miniX, UIParent:GetWidth() - miniWindow:GetWidth()))
-
 		local y = math.max(0, math.min(IdleDB.miniY, UIParent:GetHeight() - miniWindow:GetHeight()))
 
 		miniWindow:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", x, y)
@@ -157,9 +162,9 @@ function MiniWindow:Build()
 
 	miniWindow:SetBackdropColor(0.05, 0.05, 0.05, 0.95)
 	miniWindow:SetBackdropBorderColor(0.6, 0.45, 0.15, 1)
-
 	miniWindow:SetClampedToScreen(true)
 
+	-- Allow dragging the minimized bar
 	miniWindow:SetScript("OnDragStart", miniWindow.StartMoving)
 
 	miniWindow:SetScript("OnDragStop", function(self)
@@ -171,15 +176,12 @@ function MiniWindow:Build()
 
 	-- Gold-only currency display
 	UI.miniGoldText = miniWindow:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-
 	UI.miniGoldText:SetPoint("CENTER", miniWindow, "CENTER", -8, 0)
-
 	UI.miniGoldText:SetTextColor(1, 0.82, 0)
 	UI.miniGoldText:Hide()
 
 	-- Restore button
 	local restoreBtn = CreateFrame("Button", nil, miniWindow)
-
 	UI.miniRestoreBtn = restoreBtn
 
 	restoreBtn:SetSize(20, 20)
